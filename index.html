@@ -28,10 +28,15 @@
             background-color: white;
             border-radius: 1.5rem;
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-            padding: 1.5rem;
+            padding: 1rem; /* Padding menor para mobile */
             width: 100%;
             max-width: 900px;
             margin: auto;
+        }
+        @media (min-width: 640px) {
+            .game-card {
+                padding: 1.5rem; /* Padding original para telas maiores */
+            }
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: scale(0.95); }
@@ -60,9 +65,9 @@
         #word-search-grid {
             display: grid;
             grid-template-columns: repeat(15, 1fr);
-            gap: 2px;
+            gap: 1px; /* Espaçamento reduzido */
             background-color: #f3f4f6;
-            padding: 5px;
+            padding: 2px; /* Padding reduzido */
             border-radius: 8px;
             touch-action: none;
         }
@@ -72,7 +77,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: clamp(0.6em, 2vw, 0.9em);
+            font-size: clamp(0.5em, 2.5vw, 0.9em); /* Fonte mais responsiva */
             font-weight: bold;
             text-transform: uppercase;
             background-color: white;
