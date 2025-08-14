@@ -187,6 +187,7 @@
                 <h2 class="text-3xl font-bold text-gray-800">Jogo da Memória</h2>
                 <p class="text-gray-600 mt-2">Encontre os pares das nossas fotos!</p>
                 <div id="memory-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-4 mt-4"></div>
+                <div id="memory-restart-container" class="mt-4"></div>
             </div>
             <div class="w-full pt-4 mt-4 border-t border-gray-200 flex justify-center items-center space-x-4">
                 <button onclick="goBack()" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><polyline points="12 19 5 12 12 5"></polyline></svg>Voltar</button>
@@ -200,9 +201,11 @@
         <p class="text-lg text-gray-600">Você encontrou todos os presentes! Espero que tenha se divertido tanto quanto eu me diverti preparando tudo isso.</p>
         <p class="text-2xl font-bold text-gray-800">Eu te amo infinitamente!</p>
         <svg class="w-20 h-20 text-red-500 animate-pulse" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>
-        <button onclick="goHome()" class="mt-4 bg-pink-500 text-white font-bold py-2 px-6 rounded-full hover:bg-pink-600 transition">
-            Jogar Novamente
-        </button>
+        <div class="flex flex-col sm:flex-row gap-4 mt-4">
+            <button onclick="goBack()" class="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-full hover:bg-gray-300 transition">Voltar</button>
+            <button onclick="showAllCluesModal()" class="bg-pink-400 text-white font-semibold py-2 px-6 rounded-full hover:bg-pink-500 transition">Ver Dicas</button>
+            <button onclick="goHome()" class="bg-pink-500 text-white font-bold py-2 px-6 rounded-full hover:bg-pink-600 transition">Jogar Novamente</button>
+        </div>
     </div>
 
     <!-- Modals -->
@@ -216,9 +219,18 @@
             </button>
         </div>
     </div>
+    <div id="all-clues-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-2xl shadow-xl p-8 text-center max-w-sm mx-auto animate-fadeIn space-y-5 relative">
+            <button onclick="closeAllCluesModal()" class="absolute top-2 right-3 text-2xl text-gray-400 hover:text-black">&times;</button>
+            <h3 class="text-2xl font-bold text-pink-500">Resumo das Dicas</h3>
+            <ul id="all-clues-list" class="text-left space-y-3 mt-4">
+                <!-- Dicas serão inseridas aqui pelo JS -->
+            </ul>
+        </div>
+    </div>
     <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white rounded-2xl shadow-xl p-8 text-center max-w-sm mx-auto animate-fadeIn space-y-5 relative">
-            <button onclick="closeHelpModal()" class="absolute top-2 right-2 text-gray-400 hover:text-black">&times;</button>
+            <button onclick="closeHelpModal()" class="absolute top-2 right-3 text-2xl text-gray-400 hover:text-black">&times;</button>
             <div id="wordle-help" class="help-content hidden">
                 <h3 class="text-2xl font-bold text-pink-500">Como Jogar</h3>
                 <p class="text-gray-600 mt-4">Adivinhe a palavra em 6 tentativas. Após cada tentativa, a cor das letras muda para mostrar o quão perto você está.</p>
@@ -279,6 +291,7 @@
     let currentScreenIndex = 0;
     let wordleCompleted = false;
     let wordSearchCompleted = false;
+    let memoryGameCompleted = false;
 
     function showScreen(screenId) {
         document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
@@ -319,6 +332,24 @@
             restartBtn.onclick = initWordSearch;
             container.appendChild(restartBtn);
         }
+
+        if (screenId === 'game4' && memoryGameCompleted) {
+            document.getElementById('memory-grid').style.display = 'grid';
+            const container = document.getElementById('memory-restart-container');
+            container.innerHTML = '';
+
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Ver Mensagem Final';
+            nextBtn.className = 'w-full max-w-xs mx-auto bg-pink-500 text-white font-bold py-2 px-6 rounded-full hover:bg-pink-600 transition';
+            nextBtn.onclick = goNext;
+            container.appendChild(nextBtn);
+
+            const restartBtn = document.createElement('button');
+            restartBtn.textContent = 'Jogar Novamente';
+            restartBtn.className = 'mt-2 w-full max-w-xs mx-auto bg-gray-500 text-white font-bold py-2 px-6 rounded-full hover:bg-gray-600 transition';
+            restartBtn.onclick = initMemoryGame;
+            container.appendChild(restartBtn);
+        }
     }
 
     function goNext() {
@@ -329,11 +360,9 @@
     }
 
     function goBack() {
-        if (currentScreenIndex > 1) {
+        if (currentScreenIndex > 0) {
             currentScreenIndex--;
             showScreen(screens[currentScreenIndex]);
-        } else {
-            goHome();
         }
     }
 
@@ -359,13 +388,27 @@
     }
     
     function showHelpModal(contentId) {
-        document.querySelectorAll('.help-content').forEach(c => c.classList.add('hidden'));
         document.getElementById(contentId).classList.remove('hidden');
         document.getElementById('help-modal').style.display = 'flex';
     }
 
     function closeHelpModal() {
         document.getElementById('help-modal').style.display = 'none';
+    }
+
+    function showAllCluesModal() {
+        const list = document.getElementById('all-clues-list');
+        list.innerHTML = '';
+        clues.forEach((clue, index) => {
+            const li = document.createElement('li');
+            li.innerHTML = `<span class="font-bold text-pink-500">Presente ${index + 1}:</span> ${clue}`;
+            list.appendChild(li);
+        });
+        document.getElementById('all-clues-modal').style.display = 'flex';
+    }
+
+    function closeAllCluesModal() {
+        document.getElementById('all-clues-modal').style.display = 'none';
     }
 
     window.onload = () => {
@@ -655,6 +698,9 @@
     let lockBoard = false;
 
     function initMemoryGame() {
+        memoryGameCompleted = false;
+        document.getElementById('memory-grid').style.display = 'grid';
+        document.getElementById('memory-restart-container').innerHTML = '';
         memoryGrid.innerHTML = '';
         flippedCards = [];
         matchedPairs = 0;
@@ -691,6 +737,7 @@
             flippedCards = [];
             lockBoard = false;
             if (matchedPairs === memoryImages.length) {
+                memoryGameCompleted = true;
                 setTimeout(() => showClue(clues[3]), 1000);
             }
         } else {
