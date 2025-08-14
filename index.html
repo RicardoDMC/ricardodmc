@@ -130,7 +130,7 @@
                     <h2 class="text-3xl font-bold text-gray-800">Joguinho</h2>
                 </div>
                 <div id="wordle-grid" class="grid grid-cols-6 gap-1 my-4 max-w-sm mx-auto"></div>
-                <p id="wordle-message" class="h-6 text-red-500 font-semibold"></p>
+                <p id="wordle-message" class="min-h-[2.5rem] font-semibold mb-2"></p>
                 <div id="wordle-controls" class="w-full max-w-sm mx-auto">
                     <input id="wordle-input" type="text" maxlength="6" class="text-center p-2 border-2 border-gray-300 rounded-lg focus:border-pink-500 focus:outline-none w-full" placeholder="Digite sua tentativa aqui">
                     <button onclick="checkWordleGuess()" class="mt-2 w-full bg-pink-500 text-white font-bold py-2 px-6 rounded-full hover:bg-pink-600 transition">Verificar</button>
@@ -150,8 +150,8 @@
                 <h2 class="text-3xl font-bold text-gray-800">Quiz Sobre Nós</h2>
                 <p class="text-gray-600 mt-2">Vamos ver se você se lembra de alguns momentos especiais...</p>
                 <div id="quiz-form" class="text-left w-full space-y-6 mt-6"></div>
-                <p id="quiz-message" class="h-6 text-red-500 font-semibold mt-4"></p>
-                <button onclick="checkQuiz()" class="mt-4 bg-pink-500 text-white font-bold py-2 px-6 rounded-full hover:bg-pink-600 transition">Verificar Respostas</button>
+                <p id="quiz-message" class="min-h-[2.5rem] font-semibold mt-4"></p>
+                <button onclick="checkQuiz()" class="mt-2 bg-pink-500 text-white font-bold py-2 px-6 rounded-full hover:bg-pink-600 transition">Verificar Respostas</button>
             </div>
             <div class="w-full pt-4 mt-4 border-t border-gray-200 flex justify-center items-center space-x-4">
                 <button onclick="goBack()" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><polyline points="12 19 5 12 12 5"></polyline></svg>Voltar</button>
@@ -264,22 +264,40 @@
     // IMPORTANTE: Substitua os links abaixo pelos links das suas 6 fotos.
     // As fotos devem ser quadradas para um melhor resultado.
     const memoryImages = [
-        'https://placehold.co/200x200/f87171/ffffff?text=Foto+1',
-        'https://placehold.co/200x200/fb923c/ffffff?text=Foto+2',
-        'https://placehold.co/200x200/facc15/ffffff?text=Foto+3',
-        'https://placehold.co/200x200/4ade80/ffffff?text=Foto+4',
-        'https://placehold.co/200x200/38bdf8/ffffff?text=Foto+5',
-        'https://placehold.co/200x200/a78bfa/ffffff?text=Foto+6'
+        'Imagem1.jpg',
+        'Imagem2.jpg',
+        'Imagem3.jpg',
+        'Imagem4.jpg',
+        'Imagem5.jpg',
+        'Imagem6.jpg'
     ];
 
 
     // --- LÓGICA DO SITE ---
     const screens = ['intro', 'game1', 'game2', 'game3', 'game4', 'final'];
     let currentScreenIndex = 0;
+    let wordleCompleted = false;
 
     function showScreen(screenId) {
         document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
+
+        if (screenId === 'game1' && wordleCompleted) {
+            wordleControls.style.display = 'none';
+            wordleRestartContainer.innerHTML = '';
+            
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Próxima Dinâmica';
+            nextBtn.className = 'w-full bg-pink-500 text-white font-bold py-2 px-6 rounded-full hover:bg-pink-600 transition';
+            nextBtn.onclick = goNext;
+            wordleRestartContainer.appendChild(nextBtn);
+            
+            const restartBtn = document.createElement('button');
+            restartBtn.textContent = 'Jogar Novamente';
+            restartBtn.className = 'mt-2 w-full bg-gray-500 text-white font-bold py-2 px-6 rounded-full hover:bg-gray-600 transition';
+            restartBtn.onclick = initWordle;
+            wordleRestartContainer.appendChild(restartBtn);
+        }
     }
 
     function goNext() {
@@ -290,7 +308,7 @@
     }
 
     function goBack() {
-        if (currentScreenIndex > 1) { // Só volta se não estiver no primeiro jogo
+        if (currentScreenIndex > 1) {
             currentScreenIndex--;
             showScreen(screens[currentScreenIndex]);
         } else {
@@ -301,7 +319,6 @@
     function goHome() {
         currentScreenIndex = 0;
         showScreen(screens[currentScreenIndex]);
-        // Reinicia os jogos
         initWordle();
         initQuiz();
         initWordSearch();
@@ -347,9 +364,11 @@
     const wordleRestartContainer = document.getElementById('wordle-restart-container');
 
     function initWordle() {
+        wordleCompleted = false;
         wordleGrid.innerHTML = '';
         currentGuess = 0;
         wordleMessage.textContent = '';
+        wordleMessage.className = 'min-h-[2.5rem] font-semibold mb-2';
         wordleInput.value = '';
         wordleControls.style.display = 'block';
         wordleRestartContainer.innerHTML = '';
@@ -369,6 +388,7 @@
 
         if (guess.length !== 6) {
             wordleMessage.textContent = 'A palavra deve ter 6 letras.';
+            wordleMessage.className = 'min-h-[2.5rem] font-semibold mb-2 text-red-500';
             return;
         }
 
@@ -398,11 +418,14 @@
         wordleInput.value = '';
 
         if (guess === wordleAnswer) {
+            wordleCompleted = true;
             wordleMessage.textContent = 'Parabéns, você acertou!';
+            wordleMessage.className = 'min-h-[2.5rem] font-semibold mb-2 text-green-600';
             wordleControls.style.display = 'none';
             setTimeout(() => showClue(clues[0]), 1500);
         } else if (currentGuess >= 6) {
             wordleMessage.textContent = `Que pena! A palavra era ${wordleAnswer}.`;
+            wordleMessage.className = 'min-h-[2.5rem] font-semibold mb-2 text-red-500';
             wordleControls.style.display = 'none';
             const restartBtn = document.createElement('button');
             restartBtn.textContent = 'Tentar Novamente';
@@ -419,6 +442,7 @@
     function initQuiz() {
         quizForm.innerHTML = '';
         quizMessage.textContent = '';
+        quizMessage.className = 'min-h-[2.5rem] font-semibold mt-4';
         quizQuestions.forEach((q, index) => {
             const questionBlock = document.createElement('div');
             questionBlock.innerHTML = `<p class="font-semibold text-gray-700">${index + 1}. ${q.question}</p>`;
@@ -443,11 +467,11 @@
         });
         if (allCorrect) {
             quizMessage.textContent = 'Perfeito! Você lembrou de tudo!';
-            quizMessage.style.color = 'green';
+            quizMessage.className = 'min-h-[2.5rem] font-semibold mt-4 text-green-600';
             setTimeout(() => showClue(clues[1]), 1000);
         } else {
             quizMessage.textContent = 'Opa, uma ou mais respostas não estão certas. Tente de novo!';
-            quizMessage.style.color = 'red';
+            quizMessage.className = 'min-h-[2.5rem] font-semibold mt-4 text-red-500';
         }
     }
 
