@@ -165,13 +165,14 @@
             <div class="text-center">
                 <h2 class="text-3xl font-bold text-gray-800">Caça-Palavras das Viagens</h2>
                 <p class="text-gray-600 mt-2">Encontre as cidades que já visitamos juntos!</p>
-                <div class="flex flex-col sm:flex-row gap-4 w-full mt-4">
+                <div id="word-search-container" class="flex flex-col md:flex-row gap-4 w-full mt-4">
                     <div id="word-search-grid" class="flex-grow"></div>
-                    <div class="w-full sm:w-48 bg-pink-50 p-3 rounded-lg">
+                    <div class="w-full md:w-48 bg-pink-50 p-3 rounded-lg">
                         <h3 class="font-semibold mb-2 text-pink-800">Palavras:</h3>
                         <ul id="word-list" class="space-y-1 text-pink-700"></ul>
                     </div>
                 </div>
+                <div id="word-search-restart-container" class="mt-4"></div>
             </div>
             <div class="w-full pt-4 mt-4 border-t border-gray-200 flex justify-center items-center space-x-4">
                 <button onclick="goBack()" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><polyline points="12 19 5 12 12 5"></polyline></svg>Voltar</button>
@@ -264,12 +265,12 @@
     // IMPORTANTE: Substitua os links abaixo pelos links das suas 6 fotos.
     // As fotos devem ser quadradas para um melhor resultado.
     const memoryImages = [
-        'Imagem1.jpg',
-        'Imagem2.jpg',
-        'Imagem3.jpg',
-        'Imagem4.jpg',
-        'Imagem5.jpg',
-        'Imagem6.jpg'
+        'https://placehold.co/200x200/f87171/ffffff?text=Foto+1',
+        'https://placehold.co/200x200/fb923c/ffffff?text=Foto+2',
+        'https://placehold.co/200x200/facc15/ffffff?text=Foto+3',
+        'https://placehold.co/200x200/4ade80/ffffff?text=Foto+4',
+        'https://placehold.co/200x200/38bdf8/ffffff?text=Foto+5',
+        'https://placehold.co/200x200/a78bfa/ffffff?text=Foto+6'
     ];
 
 
@@ -277,6 +278,7 @@
     const screens = ['intro', 'game1', 'game2', 'game3', 'game4', 'final'];
     let currentScreenIndex = 0;
     let wordleCompleted = false;
+    let wordSearchCompleted = false;
 
     function showScreen(screenId) {
         document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
@@ -284,19 +286,38 @@
 
         if (screenId === 'game1' && wordleCompleted) {
             wordleControls.style.display = 'none';
-            wordleRestartContainer.innerHTML = '';
+            const container = document.getElementById('wordle-restart-container');
+            container.innerHTML = '';
             
             const nextBtn = document.createElement('button');
             nextBtn.textContent = 'Próxima Dinâmica';
             nextBtn.className = 'w-full bg-pink-500 text-white font-bold py-2 px-6 rounded-full hover:bg-pink-600 transition';
             nextBtn.onclick = goNext;
-            wordleRestartContainer.appendChild(nextBtn);
+            container.appendChild(nextBtn);
             
             const restartBtn = document.createElement('button');
             restartBtn.textContent = 'Jogar Novamente';
             restartBtn.className = 'mt-2 w-full bg-gray-500 text-white font-bold py-2 px-6 rounded-full hover:bg-gray-600 transition';
             restartBtn.onclick = initWordle;
-            wordleRestartContainer.appendChild(restartBtn);
+            container.appendChild(restartBtn);
+        }
+        
+        if (screenId === 'game3' && wordSearchCompleted) {
+            document.getElementById('word-search-container').style.display = 'flex';
+            const container = document.getElementById('word-search-restart-container');
+            container.innerHTML = '';
+
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Próxima Dinâmica';
+            nextBtn.className = 'w-full max-w-xs mx-auto bg-pink-500 text-white font-bold py-2 px-6 rounded-full hover:bg-pink-600 transition';
+            nextBtn.onclick = goNext;
+            container.appendChild(nextBtn);
+
+            const restartBtn = document.createElement('button');
+            restartBtn.textContent = 'Jogar Novamente';
+            restartBtn.className = 'mt-2 w-full max-w-xs mx-auto bg-gray-500 text-white font-bold py-2 px-6 rounded-full hover:bg-gray-600 transition';
+            restartBtn.onclick = initWordSearch;
+            container.appendChild(restartBtn);
         }
     }
 
@@ -485,6 +506,10 @@
     let selection = [];
 
     function initWordSearch() {
+        wordSearchCompleted = false;
+        document.getElementById('word-search-container').style.display = 'flex';
+        document.getElementById('word-search-restart-container').innerHTML = '';
+
         foundWords = [];
         wordListEl.innerHTML = '';
         wordSearchWords.forEach(word => {
@@ -577,6 +602,7 @@
             });
             document.getElementById(`word-${correctWord}`).classList.add('found');
             if (foundWords.length === wordSearchWords.length) {
+                wordSearchCompleted = true;
                 setTimeout(() => showClue(clues[2]), 500);
             }
         } else {
