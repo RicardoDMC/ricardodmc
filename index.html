@@ -151,7 +151,10 @@
                 <p class="text-gray-600 mt-2">Vamos ver se você se lembra de alguns momentos especiais...</p>
                 <div id="quiz-form" class="text-left w-full space-y-6 mt-6"></div>
                 <p id="quiz-message" class="min-h-[2.5rem] font-semibold mt-4"></p>
-                <button onclick="checkQuiz()" class="mt-2 bg-pink-500 text-white font-bold py-2 px-6 rounded-full hover:bg-pink-600 transition">Verificar Respostas</button>
+                <div id="quiz-controls">
+                    <button onclick="checkQuiz()" class="mt-2 bg-pink-500 text-white font-bold py-2 px-6 rounded-full hover:bg-pink-600 transition">Verificar Respostas</button>
+                </div>
+                <div id="quiz-restart-container" class="mt-2"></div>
             </div>
             <div class="w-full pt-4 mt-4 border-t border-gray-200 flex justify-center items-center space-x-4">
                 <button onclick="goBack()" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><polyline points="12 19 5 12 12 5"></polyline></svg>Voltar</button>
@@ -290,6 +293,7 @@
     const screens = ['intro', 'game1', 'game2', 'game3', 'game4', 'final'];
     let currentScreenIndex = 0;
     let wordleCompleted = false;
+    let quizCompleted = false;
     let wordSearchCompleted = false;
     let memoryGameCompleted = false;
 
@@ -312,6 +316,24 @@
             restartBtn.textContent = 'Jogar Novamente';
             restartBtn.className = 'mt-2 w-full bg-gray-500 text-white font-bold py-2 px-6 rounded-full hover:bg-gray-600 transition';
             restartBtn.onclick = initWordle;
+            container.appendChild(restartBtn);
+        }
+
+        if (screenId === 'game2' && quizCompleted) {
+            document.getElementById('quiz-controls').style.display = 'none';
+            const container = document.getElementById('quiz-restart-container');
+            container.innerHTML = '';
+
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Próxima Dinâmica';
+            nextBtn.className = 'w-full max-w-xs mx-auto bg-pink-500 text-white font-bold py-2 px-6 rounded-full hover:bg-pink-600 transition';
+            nextBtn.onclick = goNext;
+            container.appendChild(nextBtn);
+
+            const restartBtn = document.createElement('button');
+            restartBtn.textContent = 'Revisar Quiz';
+            restartBtn.className = 'mt-2 w-full max-w-xs mx-auto bg-gray-500 text-white font-bold py-2 px-6 rounded-full hover:bg-gray-600 transition';
+            restartBtn.onclick = initQuiz;
             container.appendChild(restartBtn);
         }
         
@@ -502,11 +524,17 @@
     // --- LÓGICA DO JOGO 2: QUIZ ---
     const quizForm = document.getElementById('quiz-form');
     const quizMessage = document.getElementById('quiz-message');
+    const quizControls = document.getElementById('quiz-controls');
+    const quizRestartContainer = document.getElementById('quiz-restart-container');
 
     function initQuiz() {
+        quizCompleted = false;
         quizForm.innerHTML = '';
         quizMessage.textContent = '';
         quizMessage.className = 'min-h-[2.5rem] font-semibold mt-4';
+        quizControls.style.display = 'block';
+        quizRestartContainer.innerHTML = '';
+
         quizQuestions.forEach((q, index) => {
             const questionBlock = document.createElement('div');
             questionBlock.innerHTML = `<p class="font-semibold text-gray-700">${index + 1}. ${q.question}</p>`;
@@ -530,8 +558,10 @@
             return selected && selected.value === q.correctAnswer;
         });
         if (allCorrect) {
+            quizCompleted = true;
             quizMessage.textContent = 'Perfeito! Você lembrou de tudo!';
             quizMessage.className = 'min-h-[2.5rem] font-semibold mt-4 text-green-600';
+            document.querySelectorAll('#quiz-form input[type="radio"]').forEach(radio => radio.disabled = true);
             setTimeout(() => showClue(clues[1]), 1000);
         } else {
             quizMessage.textContent = 'Opa, uma ou mais respostas não estão certas. Tente de novo!';
