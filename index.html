@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feliz Aniversário, Meu Amor!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Pacifico&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fce4ec; /* Fundo rosa claro */
+        }
+        .font-handwriting {
+            font-family: 'Pacifico', cursive;
+        }
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+            width: 100%;
+        }
+        .screen.active {
+            display: flex;
+        }
+        .game-card {
+            background-color: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 900px; /* Aumentado para o caça-palavras */
+            margin: auto;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        /* Estilos do Wordle */
+        .tile {
+            width: 45px;
+            height: 45px;
+            border: 2px solid #d1d5db;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: transform 0.3s, background-color 0.5s, border-color 0.5s;
+        }
+        @media (min-width: 640px) { .tile { width: 50px; height: 50px; font-size: 2rem; } }
+        .tile.correct { background-color: #6aaa64; color: white; border-color: #6aaa64; transform: rotateX(360deg); }
+        .tile.present { background-color: #c9b458; color: white; border-color: #c9b458; transform: rotateX(360deg); }
+        .tile.absent { background-color: #787c7e; color: white; border-color: #787c7e; }
+
+        /* Estilos do Caça-Palavras */
+        #word-search-grid {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            gap: 2px;
+            background-color: #f3f4f6;
+            padding: 5px;
+            border-radius: 8px;
+            touch-action: none;
+        }
+        .grid-cell {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(0.6em, 2vw, 0.9em);
+            font-weight: bold;
+            text-transform: uppercase;
+            background-color: white;
+            cursor: pointer;
+            user-select: none;
+        }
+        .grid-cell.selected { background-color: #fca5a5; }
+        .grid-cell.found { background-color: #6aaa64; color: white; transition: background-color 0.5s; }
+        #word-list li.found { text-decoration: line-through; color: #9ca3af; }
+
+        /* Estilos do Jogo da Memória */
+        .memory-card {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+            cursor: pointer;
+        }
+        .memory-card.is-flipped { transform: rotateY(180deg); }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+        }
+        .card-front { background-color: #fb7185; }
+        .card-back { background-color: #fecdd3; transform: rotateY(180deg); overflow: hidden; }
+        .card-back img { width: 100%; height: 100%; object-fit: cover; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Telas da Dinâmica -->
+    <div id="intro" class="screen active flex-col text-center items-center space-y-6 p-8 bg-white rounded-2xl shadow-xl max-w-lg mx-auto">
+        <h1 class="font-handwriting text-5xl text-pink-500">Feliz Aniversário, meu amor!</h1>
+        <p class="text-lg text-gray-600">Preparei uma pequena surpresa para você. Uma caça aos tesouros para encontrar seus presentes. Espero que você goste!</p>
+        <p class="text-lg text-gray-600">Está pronta para começar?</p>
+        <button onclick="goNext()" class="bg-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-pink-600 transition-transform transform hover:scale-105">
+            Começar a Aventura!
+        </button>
+    </div>
+
+    <div id="game1" class="screen p-4 flex-col items-center justify-center">
+        <div class="game-card max-w-lg">
+            <div class="text-center">
+                <div class="relative mb-4">
+                    <button onclick="showHelpModal('wordle-help')" class="absolute top-0 right-0 text-gray-400 hover:text-pink-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    </button>
+                    <h2 class="text-3xl font-bold text-gray-800">Joguinho</h2>
+                </div>
+                <div id="wordle-grid" class="grid grid-cols-7 gap-1 my-4 max-w-sm mx-auto"></div>
+                <p id="wordle-message" class="h-6 text-red-500 font-semibold"></p>
+                <div id="wordle-controls" class="w-full max-w-sm mx-auto">
+                    <input id="wordle-input" type="text" maxlength="7" class="text-center p-2 border-2 border-gray-300 rounded-lg focus:border-pink-500 focus:outline-none w-full" placeholder="Digite sua tentativa aqui">
+                    <button onclick="checkWordleGuess()" class="mt-2 w-full bg-pink-500 text-white font-bold py-2 px-6 rounded-full hover:bg-pink-600 transition">Verificar</button>
+                </div>
+                <div id="wordle-restart-container" class="mt-2 max-w-sm mx-auto"></div>
+            </div>
+            <div class="w-full pt-4 mt-4 border-t border-gray-200 flex justify-center items-center space-x-4">
+                <button onclick="goBack()" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><polyline points="12 19 5 12 12 5"></polyline></svg>Voltar</button>
+                <button onclick="goHome()" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>Início</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game2" class="screen p-4 flex-col items-center justify-center">
+        <div class="game-card max-w-lg">
+            <div class="text-center">
+                <h2 class="text-3xl font-bold text-gray-800">Quiz Sobre Nós</h2>
+                <p class="text-gray-600 mt-2">Vamos ver se você se lembra de alguns momentos especiais...</p>
+                <div id="quiz-form" class="text-left w-full space-y-6 mt-6"></div>
+                <p id="quiz-message" class="h-6 text-red-500 font-semibold mt-4"></p>
+                <button onclick="checkQuiz()" class="mt-4 bg-pink-500 text-white font-bold py-2 px-6 rounded-full hover:bg-pink-600 transition">Verificar Respostas</button>
+            </div>
+            <div class="w-full pt-4 mt-4 border-t border-gray-200 flex justify-center items-center space-x-4">
+                <button onclick="goBack()" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><polyline points="12 19 5 12 12 5"></polyline></svg>Voltar</button>
+                <button onclick="goHome()" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>Início</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game3" class="screen p-4 flex-col items-center justify-center">
+        <div class="game-card">
+            <div class="text-center">
+                <h2 class="text-3xl font-bold text-gray-800">Caça-Palavras das Viagens</h2>
+                <p class="text-gray-600 mt-2">Encontre as cidades que já visitamos juntos!</p>
+                <div class="flex flex-col sm:flex-row gap-4 w-full mt-4">
+                    <div id="word-search-grid" class="flex-grow"></div>
+                    <div class="w-full sm:w-48 bg-pink-50 p-3 rounded-lg">
+                        <h3 class="font-semibold mb-2 text-pink-800">Palavras:</h3>
+                        <ul id="word-list" class="space-y-1 text-pink-700"></ul>
+                    </div>
+                </div>
+            </div>
+            <div class="w-full pt-4 mt-4 border-t border-gray-200 flex justify-center items-center space-x-4">
+                <button onclick="goBack()" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><polyline points="12 19 5 12 12 5"></polyline></svg>Voltar</button>
+                <button onclick="goHome()" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>Início</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game4" class="screen p-4 flex-col items-center justify-center">
+        <div class="game-card max-w-2xl">
+            <div class="text-center">
+                <h2 class="text-3xl font-bold text-gray-800">Jogo da Memória</h2>
+                <p class="text-gray-600 mt-2">Encontre os pares das nossas fotos!</p>
+                <div id="memory-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-4 mt-4"></div>
+            </div>
+            <div class="w-full pt-4 mt-4 border-t border-gray-200 flex justify-center items-center space-x-4">
+                <button onclick="goBack()" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><polyline points="12 19 5 12 12 5"></polyline></svg>Voltar</button>
+                <button onclick="goHome()" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>Início</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="final" class="screen flex-col text-center items-center space-y-6 p-8 bg-white rounded-2xl shadow-xl max-w-lg mx-auto">
+        <h1 class="font-handwriting text-5xl text-pink-500">Parabéns, meu amor!</h1>
+        <p class="text-lg text-gray-600">Você encontrou todos os presentes! Espero que tenha se divertido tanto quanto eu me diverti preparando tudo isso.</p>
+        <p class="text-2xl font-bold text-gray-800">Eu te amo infinitamente!</p>
+        <svg class="w-20 h-20 text-red-500 animate-pulse" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>
+        <button onclick="goHome()" class="mt-4 bg-pink-500 text-white font-bold py-2 px-6 rounded-full hover:bg-pink-600 transition">
+            Jogar Novamente
+        </button>
+    </div>
+
+    <!-- Modals -->
+    <div id="clue-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-2xl shadow-xl p-8 text-center max-w-sm mx-auto animate-fadeIn space-y-5">
+            <h3 class="text-2xl font-bold text-pink-500">Você conseguiu!</h3>
+            <p class="text-gray-700">Aqui está sua próxima pista:</p>
+            <p id="clue-text" class="text-lg font-semibold bg-pink-100 p-4 rounded-lg text-pink-800"></p>
+            <button onclick="closeClueAndGoNext()" class="bg-pink-500 text-white font-bold py-2 px-8 rounded-full hover:bg-pink-600 transition">
+                Próxima Dinâmica
+            </button>
+        </div>
+    </div>
+    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-2xl shadow-xl p-8 text-center max-w-sm mx-auto animate-fadeIn space-y-5 relative">
+            <button onclick="closeHelpModal()" class="absolute top-2 right-2 text-gray-400 hover:text-black">&times;</button>
+            <div id="wordle-help" class="help-content hidden">
+                <h3 class="text-2xl font-bold text-pink-500">Como Jogar</h3>
+                <p class="text-gray-600 mt-4">Adivinhe a palavra em 6 tentativas. Após cada tentativa, a cor das letras muda para mostrar o quão perto você está.</p>
+                <div class="flex flex-col space-y-3 text-left mt-4">
+                    <div><span class="inline-block w-5 h-5 bg-green-500 rounded-sm mr-2"></span>Letra e posição corretas.</div>
+                    <div><span class="inline-block w-5 h-5 bg-yellow-500 rounded-sm mr-2"></span>Letra correta, posição errada.</div>
+                    <div><span class="inline-block w-5 h-5 bg-gray-500 rounded-sm mr-2"></span>Letra não existe na palavra.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+<script>
+    // --- CONFIGURAÇÃO DA DINÂMICA ---
+    const clues = [
+        "Lugar onde muitos cabos são guardados.", // Após Wordle
+        "Onde a mágica do cinema acontece em casa.", // Após Quiz
+        "Procure em um lugar que te leva para outros mundos sem sair do lugar.", // Após Caça-Palavras
+        "Seu último refúgio de conforto ao final do dia." // Após Jogo da Memória
+    ];
+    
+    const wordleAnswer = "MUNDIAL";
+
+    const quizQuestions = [
+        {
+            question: "Para onde foi a primeira vez que saímos juntos?",
+            options: ["Parque Ibirapuera", "Cinema Shopping", "Restaurante Italiano", "Praia Grande"],
+            correctAnswer: "Cinema Shopping" // Altere para a resposta correta
+        },
+        {
+            question: "Qual o dia em que ficamos pela primeira vez?",
+            options: ["15 de Março", "22 de Abril", "01 de Maio", "12 de Junho"],
+            correctAnswer: "22 de Abril" // Altere para a resposta correta
+        },
+        {
+            question: "Qual o filme que vimos juntos pela primeira vez?",
+            options: ["Homem-Aranha", "O Rei Leão", "Como se Fosse a Primeira Vez", "Velozes e Furiosos"],
+            correctAnswer: "Como se Fosse a Primeira Vez" // Altere para a resposta correta
+        }
+    ];
+
+    const wordSearchWords = ["RIODEJANEIRO", "ITU", "SERRANEGRA", "PARANAPIACABA", "CAMPOSDOJORDAO", "SAOROQUE"];
+
+    // IMPORTANTE: Substitua os links abaixo pelos links das suas 6 fotos.
+    // As fotos devem ser quadradas para um melhor resultado.
+    const memoryImages = [
+        'Imagem1.jpg',
+        'Imagem2.jpg',
+        'Imagem3.jpg',
+        'Imagem4.jpg',
+        'Imagem5.jpg',
+        'Imagem6.jpg'
+    ];
+
+
+    // --- LÓGICA DO SITE ---
+    const screens = ['intro', 'game1', 'game2', 'game3', 'game4', 'final'];
+    let currentScreenIndex = 0;
+
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    function goNext() {
+        if (currentScreenIndex < screens.length - 1) {
+            currentScreenIndex++;
+            showScreen(screens[currentScreenIndex]);
+        }
+    }
+
+    function goBack() {
+        if (currentScreenIndex > 1) { // Só volta se não estiver no primeiro jogo
+            currentScreenIndex--;
+            showScreen(screens[currentScreenIndex]);
+        } else {
+            goHome();
+        }
+    }
+
+    function goHome() {
+        currentScreenIndex = 0;
+        showScreen(screens[currentScreenIndex]);
+        // Reinicia os jogos
+        initWordle();
+        initQuiz();
+        initWordSearch();
+        initMemoryGame();
+    }
+
+    function showClue(clueText) {
+        document.getElementById('clue-text').innerText = clueText;
+        const button = document.getElementById('clue-modal').querySelector('button');
+        button.innerText = (currentScreenIndex === screens.length - 2) ? 'Ver Mensagem Final!' : 'Próxima Dinâmica';
+        document.getElementById('clue-modal').style.display = 'flex';
+    }
+
+    function closeClueAndGoNext() {
+        document.getElementById('clue-modal').style.display = 'none';
+        goNext();
+    }
+    
+    function showHelpModal(contentId) {
+        document.querySelectorAll('.help-content').forEach(c => c.classList.add('hidden'));
+        document.getElementById(contentId).classList.remove('hidden');
+        document.getElementById('help-modal').style.display = 'flex';
+    }
+
+    function closeHelpModal() {
+        document.getElementById('help-modal').style.display = 'none';
+    }
+
+    window.onload = () => {
+        showScreen(screens[currentScreenIndex]);
+        initWordle();
+        initQuiz();
+        initWordSearch();
+        initMemoryGame();
+    };
+
+    // --- LÓGICA DO JOGO 1: WORDLE ---
+    let currentGuess = 0;
+    const wordleGrid = document.getElementById('wordle-grid');
+    const wordleInput = document.getElementById('wordle-input');
+    const wordleMessage = document.getElementById('wordle-message');
+    const wordleControls = document.getElementById('wordle-controls');
+    const wordleRestartContainer = document.getElementById('wordle-restart-container');
+
+    function initWordle() {
+        wordleGrid.innerHTML = '';
+        currentGuess = 0;
+        wordleMessage.textContent = '';
+        wordleInput.value = '';
+        wordleControls.style.display = 'block';
+        wordleRestartContainer.innerHTML = '';
+        
+        for (let i = 0; i < 6 * 7; i++) {
+            const tile = document.createElement('div');
+            tile.classList.add('tile');
+            wordleGrid.appendChild(tile);
+        }
+    }
+
+    wordleInput.addEventListener('keydown', (e) => e.key === 'Enter' && checkWordleGuess());
+
+    function checkWordleGuess() {
+        const guess = wordleInput.value.toUpperCase();
+        wordleMessage.textContent = '';
+
+        if (guess.length !== 7) {
+            wordleMessage.textContent = 'A palavra deve ter 7 letras.';
+            return;
+        }
+
+        const answerLetters = wordleAnswer.split('');
+        const guessLetters = guess.split('');
+        const rowTiles = Array.from(wordleGrid.children).slice(currentGuess * 7, (currentGuess + 1) * 7);
+        
+        for (let i = 0; i < 7; i++) {
+            rowTiles[i].textContent = guessLetters[i];
+            if (guessLetters[i] === answerLetters[i]) {
+                rowTiles[i].classList.add('correct');
+                answerLetters[i] = null;
+            }
+        }
+        for (let i = 0; i < 7; i++) {
+            if (!rowTiles[i].classList.contains('correct')) {
+                if (answerLetters.includes(guessLetters[i])) {
+                    rowTiles[i].classList.add('present');
+                    answerLetters[answerLetters.indexOf(guessLetters[i])] = null;
+                } else {
+                    rowTiles[i].classList.add('absent');
+                }
+            }
+        }
+
+        currentGuess++;
+        wordleInput.value = '';
+
+        if (guess === wordleAnswer) {
+            wordleMessage.textContent = 'Parabéns, você acertou!';
+            wordleControls.style.display = 'none';
+            setTimeout(() => showClue(clues[0]), 1500);
+        } else if (currentGuess >= 6) {
+            wordleMessage.textContent = `Que pena! A palavra era ${wordleAnswer}.`;
+            wordleControls.style.display = 'none';
+            const restartBtn = document.createElement('button');
+            restartBtn.textContent = 'Tentar Novamente';
+            restartBtn.className = 'w-full bg-gray-500 text-white font-bold py-2 px-6 rounded-full hover:bg-gray-600 transition';
+            restartBtn.onclick = initWordle;
+            wordleRestartContainer.appendChild(restartBtn);
+        }
+    }
+
+    // --- LÓGICA DO JOGO 2: QUIZ ---
+    const quizForm = document.getElementById('quiz-form');
+    const quizMessage = document.getElementById('quiz-message');
+
+    function initQuiz() {
+        quizForm.innerHTML = '';
+        quizMessage.textContent = '';
+        quizQuestions.forEach((q, index) => {
+            const questionBlock = document.createElement('div');
+            questionBlock.innerHTML = `<p class="font-semibold text-gray-700">${index + 1}. ${q.question}</p>`;
+            const optionsBlock = document.createElement('div');
+            optionsBlock.className = 'mt-2 space-y-1';
+            q.options.forEach(option => {
+                optionsBlock.innerHTML += `
+                    <label class="flex items-center space-x-2 p-2 rounded-lg hover:bg-pink-50 cursor-pointer">
+                        <input type="radio" name="question${index}" value="${option}" class="form-radio text-pink-500 focus:ring-pink-500">
+                        <span>${option}</span>
+                    </label>`;
+            });
+            questionBlock.appendChild(optionsBlock);
+            quizForm.appendChild(questionBlock);
+        });
+    }
+
+    function checkQuiz() {
+        let allCorrect = quizQuestions.every((q, i) => {
+            const selected = document.querySelector(`input[name="question${i}"]:checked`);
+            return selected && selected.value === q.correctAnswer;
+        });
+        if (allCorrect) {
+            quizMessage.textContent = 'Perfeito! Você lembrou de tudo!';
+            quizMessage.style.color = 'green';
+            setTimeout(() => showClue(clues[1]), 1000);
+        } else {
+            quizMessage.textContent = 'Opa, uma ou mais respostas não estão certas. Tente de novo!';
+            quizMessage.style.color = 'red';
+        }
+    }
+
+    // --- LÓGICA DO JOGO 3: CAÇA-PALAVRAS ---
+    const gridSize = 15;
+    const wordGrid = document.getElementById('word-search-grid');
+    const wordListEl = document.getElementById('word-list');
+    let grid = [];
+    let foundWords = [];
+    let isSelecting = false;
+    let selection = [];
+
+    function initWordSearch() {
+        foundWords = [];
+        wordListEl.innerHTML = '';
+        wordSearchWords.forEach(word => {
+            const li = document.createElement('li');
+            li.textContent = word;
+            li.id = `word-${word}`;
+            wordListEl.appendChild(li);
+        });
+        generateGrid();
+        renderGrid();
+    }
+
+    function generateGrid() {
+        grid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(''));
+        wordSearchWords.forEach(word => {
+            let placed = false;
+            while (!placed) {
+                const direction = Math.floor(Math.random() * 2); // 0: horizontal, 1: vertical
+                const row = Math.floor(Math.random() * gridSize);
+                const col = Math.floor(Math.random() * gridSize);
+                if (direction === 0 && col + word.length <= gridSize) { // Horizontal
+                    let canPlace = true;
+                    for (let i = 0; i < word.length; i++) {
+                        if (grid[row][col + i] !== '' && grid[row][col + i] !== word[i]) {
+                            canPlace = false;
+                            break;
+                        }
+                    }
+                    if (canPlace) {
+                        for (let i = 0; i < word.length; i++) grid[row][col + i] = word[i];
+                        placed = true;
+                    }
+                } else if (direction === 1 && row + word.length <= gridSize) { // Vertical
+                    let canPlace = true;
+                    for (let i = 0; i < word.length; i++) {
+                        if (grid[row + i][col] !== '' && grid[row + i][col] !== word[i]) {
+                            canPlace = false;
+                            break;
+                        }
+                    }
+                    if (canPlace) {
+                        for (let i = 0; i < word.length; i++) grid[row + i][col] = word[i];
+                        placed = true;
+                    }
+                }
+            }
+        });
+        // Fill empty cells
+        for (let r = 0; r < gridSize; r++) {
+            for (let c = 0; c < gridSize; c++) {
+                if (grid[r][c] === '') {
+                    grid[r][c] = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)];
+                }
+            }
+        }
+    }
+    
+    function renderGrid() {
+        wordGrid.innerHTML = '';
+        for (let r = 0; r < gridSize; r++) {
+            for (let c = 0; c < gridSize; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.textContent = grid[r][c];
+                cell.dataset.row = r;
+                cell.dataset.col = c;
+                wordGrid.appendChild(cell);
+            }
+        }
+    }
+    
+    wordGrid.addEventListener('mousedown', (e) => {
+        if (e.target.classList.contains('grid-cell')) {
+            isSelecting = true;
+            selection = [e.target];
+            e.target.classList.add('selected');
+        }
+    });
+
+    wordGrid.addEventListener('mouseover', (e) => {
+        if (isSelecting && e.target.classList.contains('grid-cell') && !selection.includes(e.target)) {
+            selection.push(e.target);
+            e.target.classList.add('selected');
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isSelecting) {
+            isSelecting = false;
+            const selectedWord = selection.map(cell => cell.textContent).join('');
+            const reversedWord = selectedWord.split('').reverse().join('');
+            
+            let correctWord = null;
+            if (wordSearchWords.includes(selectedWord) && !foundWords.includes(selectedWord)) {
+                correctWord = selectedWord;
+            } else if (wordSearchWords.includes(reversedWord) && !foundWords.includes(reversedWord)) {
+                correctWord = reversedWord;
+            }
+
+            if (correctWord) {
+                foundWords.push(correctWord);
+                selection.forEach(cell => {
+                    cell.classList.remove('selected');
+                    cell.classList.add('found');
+                });
+                document.getElementById(`word-${correctWord}`).classList.add('found');
+                if (foundWords.length === wordSearchWords.length) {
+                    setTimeout(() => showClue(clues[2]), 500);
+                }
+            } else {
+                selection.forEach(cell => cell.classList.remove('selected'));
+            }
+            selection = [];
+        }
+    });
+
+
+    // --- LÓGICA DO JOGO 4: JOGO DA MEMÓRIA ---
+    const memoryGrid = document.getElementById('memory-grid');
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let lockBoard = false;
+
+    function initMemoryGame() {
+        memoryGrid.innerHTML = '';
+        flippedCards = [];
+        matchedPairs = 0;
+        lockBoard = false;
+        const cards = [...memoryImages, ...memoryImages].sort(() => 0.5 - Math.random());
+        
+        cards.forEach(imageSrc => {
+            const card = document.createElement('div');
+            card.classList.add('memory-card');
+            card.dataset.imageSrc = imageSrc;
+            card.innerHTML = `
+                <div class="card-face card-front"></div>
+                <div class="card-face card-back"><img src="${imageSrc}" alt="Foto do casal"></div>
+            `;
+            card.addEventListener('click', flipCard);
+            memoryGrid.appendChild(card);
+        });
+    }
+
+    function flipCard() {
+        if (lockBoard || this.classList.contains('is-flipped') || flippedCards.length === 2) return;
+        this.classList.add('is-flipped');
+        flippedCards.push(this);
+        if (flippedCards.length === 2) checkForMatch();
+    }
+
+    function checkForMatch() {
+        lockBoard = true;
+        const [card1, card2] = flippedCards;
+        if (card1.dataset.imageSrc === card2.dataset.imageSrc) {
+            card1.removeEventListener('click', flipCard);
+            card2.removeEventListener('click', flipCard);
+            matchedPairs++;
+            flippedCards = [];
+            lockBoard = false;
+            if (matchedPairs === memoryImages.length) {
+                setTimeout(() => showClue(clues[3]), 1000);
+            }
+        } else {
+            setTimeout(() => {
+                card1.classList.remove('is-flipped');
+                card2.classList.remove('is-flipped');
+                flippedCards = [];
+                lockBoard = false;
+            }, 1200);
+        }
+    }
+
+</script>
+</body>
+</html>
