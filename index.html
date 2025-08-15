@@ -118,7 +118,7 @@
     <!-- Telas da Dinâmica -->
     <div id="intro" class="screen active flex-col text-center items-center space-y-6 p-8 bg-white rounded-2xl shadow-xl max-w-lg mx-auto">
         <h1 class="font-handwriting text-5xl text-pink-500">Feliz Aniversário, meu amor!</h1>
-        <p class="text-lg text-gray-600">Preparei uma pequena surpresa para você. Uma caça aos tesouros para encontrar seus presentes. Espero que você goste!</p>
+        <p class="text-lg text-gray-600">Neste dia tão especial, escondi ao redor da casa alguns presentes. Para encontrá-los, fiz este site interativo com alguns desafios que, ao resolvê-los, será mostrado uma dica de onde o presente está. Você pode fazer um desafio por vez, ou, resolver todos os desafios de uma vez e ver todas as dicas reunidas na última tela se preferir, fica ao seu critério. Boa sorte!</p>
         <p class="text-lg text-gray-600">Está pronta para começar?</p>
         <button onclick="goNext()" class="bg-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-pink-600 transition-transform transform hover:scale-105">
             Começar a Aventura!
@@ -206,7 +206,7 @@
 
     <div id="final" class="screen flex-col text-center items-center space-y-6 p-8 bg-white rounded-2xl shadow-xl max-w-lg mx-auto">
         <h1 class="font-handwriting text-5xl text-pink-500">Parabéns, meu amor!</h1>
-        <p class="text-lg text-gray-600">Você encontrou todos os presentes! Espero que tenha se divertido tanto quanto eu me diverti preparando tudo isso.</p>
+        <p class="text-lg text-gray-600">Você conseguiu resolver todos os desafios! Neste dia tão especial, tudo que eu desejo a você é muita saúde, muita paz, muita felicidade, muita harmonia, força e serenidade para lidar com os problemas e muito amor de todos que te cercam!</p>
         <p class="text-2xl font-bold text-gray-800">Eu te amo infinitamente!</p>
         <svg class="w-20 h-20 text-red-500 animate-pulse" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>
         <div class="flex flex-col sm:flex-row gap-4 mt-4">
@@ -254,29 +254,29 @@
 <script>
     // --- CONFIGURAÇÃO DA DINÂMICA ---
     const clues = [
-        "Lugar onde muitos cabos são guardados.", // Após Wordle
-        "Onde a mágica do cinema acontece em casa.", // Após Quiz
-        "Procure em um lugar que te leva para outros mundos sem sair do lugar.", // Após Caça-Palavras
-        "Seu último refúgio de conforto ao final do dia." // Após Jogo da Memória
+        "Sirvo comida quente sem nunca ter fogo.", // Após Wordle
+        "Não tenho fios que te prendem, mas sou a fonte que te conecta ao mundo.", // Após Quiz
+        "Tenho costas, mas não tenho espinha.", // Após Caça-Palavras
+        "Quando estou suja, fico cheia. Quando estou limpa, fico vazia." // Após Jogo da Memória
     ];
     
-    const wordleAnswer = "CORTEX";
+    const wordleAnswer = "APOGEU";
 
     const quizQuestions = [
         {
             question: "Para onde foi a primeira vez que saímos juntos?",
-            options: ["Parque Ibirapuera", "Cinema Shopping", "Restaurante Italiano", "Praia Grande"],
-            correctAnswer: "Cinema Shopping" // Altere para a resposta correta
+            options: ["Parque Ibirapuera", "Canindé", "Bienal do livro", "Farol Santander"],
+            correctAnswer: "Canindé" // Altere para a resposta correta
         },
         {
             question: "Qual o dia em que ficamos pela primeira vez?",
-            options: ["15 de Março", "22 de Abril", "01 de Maio", "12 de Junho"],
-            correctAnswer: "22 de Abril" // Altere para a resposta correta
+            options: ["03 de Outubro", "04 de Outubro", "05 de Outubro", "06 de Outubro"],
+            correctAnswer: "04 de Outubro" // Altere para a resposta correta
         },
         {
             question: "Qual o filme que vimos juntos pela primeira vez?",
-            options: ["Homem-Aranha", "O Rei Leão", "Como se Fosse a Primeira Vez", "Velozes e Furiosos"],
-            correctAnswer: "Como se Fosse a Primeira Vez" // Altere para a resposta correta
+            options: ["Venom 3", "Operação Natal", "Coringa 2", "Gladiador 2"],
+            correctAnswer: "Coringa 2" // Altere para a resposta correta
         }
     ];
 
@@ -285,12 +285,12 @@
     // IMPORTANTE: Substitua os links abaixo pelos links das suas 6 fotos.
     // As fotos devem ser quadradas para um melhor resultado.
     const memoryImages = [
-        'https://placehold.co/200x200/f87171/ffffff?text=Foto+1',
-        'https://placehold.co/200x200/fb923c/ffffff?text=Foto+2',
-        'https://placehold.co/200x200/facc15/ffffff?text=Foto+3',
-        'https://placehold.co/200x200/4ade80/ffffff?text=Foto+4',
-        'https://placehold.co/200x200/38bdf8/ffffff?text=Foto+5',
-        'https://placehold.co/200x200/a78bfa/ffffff?text=Foto+6'
+        'Imagem1.jpg',
+        'Imagem2.jpg',
+        'Imagem3.jpg',
+        'Imagem4.jpg',
+        'Imagem5.jpg',
+        'Imagem6.jpg'
     ];
 
 
@@ -515,7 +515,7 @@
             wordleControls.style.display = 'none';
             setTimeout(() => showClue(clues[0]), 1500);
         } else if (currentGuess >= 6) {
-            wordleMessage.textContent = `Que pena! A palavra era ${wordleAnswer}.`;
+            wordleMessage.textContent = `Dica: Estágio atual da sua beleza.`;
             wordleMessage.className = 'min-h-[2.5rem] font-semibold mb-2 text-red-500';
             wordleControls.style.display = 'none';
             const restartBtn = document.createElement('button');
